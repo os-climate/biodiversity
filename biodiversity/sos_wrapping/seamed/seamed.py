@@ -39,14 +39,15 @@ class MerMediteranne(SoSWrapp):
     }
     _maturity = 'Research'
     DESC_IN = {'Temperature': {'type': 'float', 'unit': '°C'},
-        'CO2': {'type': 'float', 'unit': '-'},
-        'FishConsumption' : {'type': 'float', 'unit': '-'},
-        'EnergyOffshore' : {'type': 'float', 'unit': '-'}, #prendre totalenergy
-        'Sand' : {'type': 'float', 'unit': 't'}, #exist or only urbanisation/construction ?
-    	'PlasticConsumption' : {'type': 'float', 'unit': 't'}, #from economy ? or directly plastic in oceans ??
+        'CO2': {'type': 'float', 'unit': 't'},
+        'FishConsumption' : {'type': 'float', 'unit': 't'},
+        'TotalEnergy' : {'type': 'float', 'unit': '-'}, #prendre totalenergy
+        'Urbanisation' : {'type': 'float', 'unit': 'km²'}, 
+    	'PlasticConsumption' : {'type': 'float', 'unit': 't'},
     	'PlasticNorms' : {'type': 'float', 'unit': '%'}, #% of untreated waste ->for economic impact ?
-    	'ChemicalWaste' : {'type': 'float', 'unit': '-'}, #metals and chemical pollution
-    	'Tourism' : {'type': 'float', 'unit': 'people'} #à tirer de la population ?
+    	'ChemicalWaste' : {'type': 'float', 'unit': 't'}, #metals and chemical pollution
+    	'Tourism' : {'type': 'float', 'unit': 'people'}, #à tirer de la population ?
+        'Renewal' : {'type': 'float', 'unit': 'fish'}
     }
 
     DESC_OUT = {
@@ -73,32 +74,38 @@ class MerMediteranne(SoSWrapp):
         # Climate
         Temperature = self.get_sosdisc_inputs('Temperature')
         CO2 = self.get_sosdisc_inputs('CO2')
-        pH = 0.3 * TBD * CO2 - TBD * plastic #CO2 absorbtion and plastic dissolution are the main factor for acidification
-        #30% CO2 dans océan, pour le moment on fait -0.001 par an environ donc retro engineer / idem pour plastique auj à -0.005 dans zones très polluées 
+        pH = -3e-12 *(CO2+plastic)
+        #plastic dissolution emits CO2 so same effect on acidification
 
         #Overexploitation
         FishConsumption = self.get_sosdisc_inputs('FishConsumption')
-        Health = TBD * plastic + TBD * ChemicalWaste
-        if Health < ...: #si trop pollué alors non comestible ou alors nettement moins d'espèces 
-            fishing = TBD * FishConsumption
+        Renewal = self.get_sosdisc_inputs('Renewal')
+        FishHealth = TBD * plastic + TBD * ChemicalWaste
+        if FishHealth < TBD : #si trop pollué alors non comestible ou alors nettement moins d'espèces 
+            fishing = TBD * FishConsumption - Renewal
+            Health = FishHealth 
         else :
-            fishing = TBD * FishConsumption/TBD #diviser par 10 ??
+            fishing = TBD * FishConsumption/10 #diviser par 10 ??
             #mettre aussi max pour éviter surpêche (on va pêcher ailleurs ?)
 
         #Destruction of habitats
-        offshore = self.get_sosdisc_inputs('EnergyOffshore')
-        sand = self.get_sosdisc_inputs('Sand') #ou alors extraire de urbanisation/indsutrie pour calculer les besoins en sable ?
+        energy = self.get_sosdisc_inputs('TotalEnergy')
+        Urbanisation = self.get_sosdisc_inputs('Urbanisation') 
+        sand = TBD * Urbanisation
+        offshore = energy * TBD
 
         #Biodiversity loss, % of species of danger due to each factor
         # numbers are still approximations
-        BioLoss = 0.6 * Temperature + 0.2 * pH + 0.2 * (plastic + ChemicalWaste) + 0.1 * newspecies + TBD * fishing + TBD * offshore + TBD * sand
+        BioLoss = 0.6 * Temperature + (0.4 *pH +1) + 0.2 * (plastic + ChemicalWaste) + 0.1 * newspecies + TBD * fishing + TBD * offshore + TBD * sand
     
         #cost of pollution, norms... and benefits of fishing, tourism, offshore...
-        Cost = 13 * plastic + 1 * PlasticNorms - TBD * fishing - TBD*Tourism - TBD * offshore - TBD * sand + TBD * Health
+        Cost = 13 * plastic + 1 * PlasticNorms - TBD * fishing - TBD*Tourism - TBD * offshore - TBD * sand
 
         outputs_dict = {
-            
+            'Health': Health,
+            "Cost" : Cost,
+            "BioLoss": BioLoss
         }
 
-        #-- store outputs
+        #store outputs
         self.store_sos_outputs_values(outputs_dict)
