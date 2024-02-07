@@ -16,18 +16,16 @@ limitations under the License.
 '''
 import pandas as pd
 
-from climateeconomics.core.core_dice.macroeconomics_model import MacroEconomics
-from climateeconomics.glossarycore import GlossaryCore
 from sostrades_core.execution_engine.sos_wrapp import SoSWrapp
 from sostrades_core.tools.post_processing.charts.chart_filter import ChartFilter
 from sostrades_core.tools.post_processing.charts.two_axes_instanciated_chart import InstanciatedSeries, \
     TwoAxesInstanciatedChart
 
 
-class MerMediteranne(SoSWrapp):
+class Seamed_model(SoSWrapp):
     # ontology information
     _ontology_data = {
-        'label': 'Mer Mediteranne Model',
+        'label': 'Seamed_model',
         'type': 'Research',
         'source': 'SoSTrades Project',
         'validated': '',
@@ -41,7 +39,7 @@ class MerMediteranne(SoSWrapp):
     DESC_IN = {'Temperature': {'type': 'float', 'unit': '°C'},
         'CO2': {'type': 'float', 'unit': 't'},
         'FishConsumption' : {'type': 'float', 'unit': 't'},
-        'TotalEnergy' : {'type': 'float', 'unit': '-'}, #prendre totalenergy
+        'energy_consumption' : {'type': 'float', 'unit': '-'}, #prendre totalenergy
         'Urbanisation' : {'type': 'float', 'unit': 'km²'}, 
     	'PlasticConsumption' : {'type': 'float', 'unit': 't'},
     	'PlasticNorms' : {'type': 'float', 'unit': '%'}, #% of untreated waste ->for economic impact ?
@@ -85,18 +83,18 @@ class MerMediteranne(SoSWrapp):
             fishing = TBD * FishConsumption - Renewal
             Health = FishHealth 
         else :
-            fishing = TBD * FishConsumption/10 #diviser par 10 ??
+            fishing = 0
             #mettre aussi max pour éviter surpêche (on va pêcher ailleurs ?)
 
         #Destruction of habitats
         energy = self.get_sosdisc_inputs('TotalEnergy')
         Urbanisation = self.get_sosdisc_inputs('Urbanisation') 
         sand = TBD * Urbanisation
-        offshore = energy * TBD
+        offshore = energy * 0.2 
 
         #Biodiversity loss, % of species of danger due to each factor
         # numbers are still approximations
-        BioLoss = 0.6 * Temperature + (0.4 *pH +1) + 0.2 * (plastic + ChemicalWaste) + 0.1 * newspecies + TBD * fishing + TBD * offshore + TBD * sand
+        BioLoss =  -0,1538 * Temperature + 1 + (0.4 *pH +1) + 0.2 * (plastic + ChemicalWaste) + 0.2 * newspecies + TBD * fishing + TBD * offshore + TBD * sand
     
         #cost of pollution, norms... and benefits of fishing, tourism, offshore...
         Cost = 13 * plastic + 1 * PlasticNorms - TBD * fishing - TBD*Tourism - TBD * offshore - TBD * sand
