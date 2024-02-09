@@ -16,6 +16,8 @@ limitations under the License.
 '''
 import pandas as pd
 
+from climateeconomics.core.core_dice.macroeconomics_model import MacroEconomics
+from climateeconomics.glossarycore import GlossaryCore
 from sostrades_core.execution_engine.sos_wrapp import SoSWrapp
 from sostrades_core.tools.post_processing.charts.chart_filter import ChartFilter
 from sostrades_core.tools.post_processing.charts.two_axes_instanciated_chart import InstanciatedSeries, \
@@ -37,8 +39,8 @@ class Seamed_model(SoSWrapp):
     }
     _maturity = 'Research'
     DESC_IN = {'Temperature': {'type': 'float', 'unit': '°C'},
-        'CO2': {'type': 'float', 'unit': 't'},
-        'FishConsumption' : {'type': 'float', 'unit': 't'},
+        'CO2_emissions': {'type': 'float', 'unit': 't'},
+        'Fishing_med' : {'type': 'float', 'unit': 't'},
         'energy_consumption' : {'type': 'float', 'unit': '-'}, #prendre totalenergy
         'Urbanisation' : {'type': 'float', 'unit': 'km²'}, 
     	'PlasticConsumption' : {'type': 'float', 'unit': 't'},
@@ -66,7 +68,7 @@ class Seamed_model(SoSWrapp):
         plastic = (PlasticConsumption * PlasticNorms) * (1.4 * Tourism) #current tourism = +40% plastic pollution
 
         #Invasive Species
-        newspecies = 0.5 * TBD *plastic + TBD * (fishing + Tourism)
+        newspecies = 0.08*(0.5*(fishing+Tourism)+0.13*plastic)
         #plastifere = new species travelling fast but only viruses and bacterias, half very dangerous
 
         # Climate
@@ -83,18 +85,18 @@ class Seamed_model(SoSWrapp):
             fishing = TBD * FishConsumption - Renewal
             Health = FishHealth 
         else :
-            fishing = 0
+            fishing = TBD * FishConsumption/10 #diviser par 10 ??
             #mettre aussi max pour éviter surpêche (on va pêcher ailleurs ?)
 
         #Destruction of habitats
         energy = self.get_sosdisc_inputs('TotalEnergy')
         Urbanisation = self.get_sosdisc_inputs('Urbanisation') 
         sand = TBD * Urbanisation
-        offshore = energy * 0.2 
+        offshore = energy * TBD
 
         #Biodiversity loss, % of species of danger due to each factor
         # numbers are still approximations
-        BioLoss =  -0,1538 * Temperature + 1 + (0.4 *pH +1) + 0.2 * (plastic + ChemicalWaste) + 0.2 * newspecies + TBD * fishing + TBD * offshore + TBD * sand
+        BioLoss = 0.6 * Temperature + (0.4 *pH +1) + 0.2 * (plastic + ChemicalWaste) + 0.1 * newspecies + TBD * fishing + TBD * offshore + TBD * sand
     
         #cost of pollution, norms... and benefits of fishing, tourism, offshore...
         Cost = 13 * plastic + 1 * PlasticNorms - TBD * fishing - TBD*Tourism - TBD * offshore - TBD * sand
