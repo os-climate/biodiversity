@@ -12,7 +12,7 @@ class ProcessBuilder(BaseProcessBuilder):
     }
 
     def get_builders(self):
-        mod_path = 'biodiversity.biodiversity.sos_wrapping.seamed'
+        mod_path = 'biodiversity.sos_wrapping.seamed.seamed.Seamed_model'
         builder = self.ee.factory.get_builder_from_module(
             'seamed', mod_path)
-        return builder
+        return [builder]
