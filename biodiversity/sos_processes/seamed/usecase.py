@@ -9,7 +9,6 @@ class Study(StudyManager):
 
         dict_values = {
             f'{self.study_name}.seamed.Temperature': 15.3,
-            f'{self.study_name}.seamed.Urbanisation':1.7*10**5,
             f'{self.study_name}.seamed.CO2_emissions':38000000000,
             f'{self.study_name}.seamed.energy_consumption':160000000000,
             f'{self.study_name}.seamed.Fishing_med': 1764*10**3,

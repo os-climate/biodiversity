@@ -38,17 +38,15 @@ class Seamed_model(SoSWrapp):
         'CO2_emissions': {'type': 'float', 'unit': 't'},
         'Fishing_med' : {'type': 'float', 'unit': 't'},
         'energy_consumption' : {'type': 'float', 'unit': '-'}, #prendre totalenergy
-        'Urbanisation' : {'type': 'float', 'unit': 'kmÂ²'}, 
     	'PlasticConsumption' : {'type': 'float', 'unit': 't'},
     	'PlasticNorms' : {'type': 'float', 'unit': '%'}, #% of untreated waste ->for economic impact ?
     	'ChemicalWaste' : {'type': 'float', 'unit': 't'}, #metals and chemical pollution
-    	'Tourism' : {'type': 'float', 'unit': 'people'}, #Ã  tirer de la population ?
+    	'Tourism' : {'type': 'float', 'unit': 'people'},
         'Renewal' : {'type': 'float', 'unit': 'fish'}
     }
 
     DESC_OUT = {
-        'Health': {'type': 'float', 'unit': '-'},
-        "Cost" : {'type': 'float', 'unit': 'Mâ‚¬'},
+        ##"Cost" : {'type': 'float', 'unit': 'M€'},
         "BioLoss": {'type': 'float', 'unit': '%'}
     }
 
@@ -64,18 +62,12 @@ class Seamed_model(SoSWrapp):
         plastic = (PlasticConsumption * PlasticNorms) * (1.4 * Tourism) #current tourism = +40% plastic pollution
 
          #Overexploitation
-        FishConsumption = self.get_sosdisc_inputs('Fishing_med')
+        Fishingmed = self.get_sosdisc_inputs('Fishing_med')
         Renewal = self.get_sosdisc_inputs('Renewal')
-        FishHealth = TBD * plastic + TBD * ChemicalWaste
-        if FishHealth < TBD : #si trop polluÃ© alors non comestible ou alors nettement moins d'espÃ¨ces 
-            fishing = TBD * FishConsumption - Renewal
-            Health = FishHealth 
-        else :
-            fishing = TBD * FishConsumption/10 #diviser par 10 ??
-            Health=0
-            #mettre aussi max pour Ã©viter surpÃªche (on va pÃªcher ailleurs ?)
+        fishing = Fishingmed - Renewal
+
         #Invasive Species
-        newspecies = 0.08*(0.5*(fishing+Tourism)+0.13*plastic)
+        newspecies = (0.5*(fishing+Tourism)+0.13*plastic)
         #plastifere = new species travelling fast but only viruses and bacterias, half very dangerous
 
         # Climate
@@ -84,24 +76,15 @@ class Seamed_model(SoSWrapp):
         pH = -3e-12 *(CO2+plastic)
         #plastic dissolution emits CO2 so same effect on acidification
 
-       
-
         #Destruction of habitats
         energy = self.get_sosdisc_inputs('energy_consumption')
-        Urbanisation = self.get_sosdisc_inputs('Urbanisation') 
-        sand = TBD * Urbanisation
-        offshore = energy * TBD
+        offshore = energy * 0.3
 
         #Biodiversity loss, % of species of danger due to each factor
         # numbers are still approximations
-        BioLoss = 0.6 * Temperature + (0.4 *pH +1) + 0.2 * (plastic + ChemicalWaste) + 0.1 * newspecies + TBD * fishing + TBD * offshore + TBD * sand
-    
-        #cost of pollution, norms... and benefits of fishing, tourism, offshore...
-        Cost = 13 * plastic + 1 * PlasticNorms - TBD * fishing - TBD*Tourism - TBD * offshore - TBD * sand
+        BioLoss = 0.15 * Temperature + (0.4 *pH +1) + 0.2 * (plastic + ChemicalWaste) + 0.15 *0.2* newspecies + 0.4 * fishing + 0.05 * offshore
 
         outputs_dict = {
-            'Health': Health,
-            "Cost" : Cost,
             "BioLoss": BioLoss
         }
 
